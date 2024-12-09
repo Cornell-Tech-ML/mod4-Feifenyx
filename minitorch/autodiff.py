@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Tuple, Protocol
+from typing import Any, Iterable, Tuple, Protocol
 
 
 # ## Task 1.1
@@ -25,26 +25,48 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
 
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    vals_plus = vals[:arg] + (vals[arg] + epsilon,) + vals[arg + 1 :]
+    vals_minus = vals[:arg] + (vals[arg] - epsilon,) + vals[arg + 1 :]
+
+    return (f(*vals_plus) - f(*vals_minus)) / (2.0 * epsilon)
 
 
 variable_count = 1
 
 
 class Variable(Protocol):
-    def accumulate_derivative(self, x: Any) -> None: ...
+    def accumulate_derivative(self, x: Any) -> None:
+        """Add `val` to the the derivative accumulated on this variable.
+        Should only be called during autodifferentiation on leaf variables.
+
+        Args:
+        ----
+            x: value to be accumulated
+
+        """
+        ...
 
     @property
-    def unique_id(self) -> int: ...
+    def unique_id(self) -> int:
+        """Gets the unique identifier for the object"""
+        ...
 
-    def is_leaf(self) -> bool: ...
+    def is_leaf(self) -> bool:
+        """True if this variable created by the user"""
+        ...
 
-    def is_constant(self) -> bool: ...
+    def is_constant(self) -> bool:
+        """True if this object is a constant value"""
+        ...
 
     @property
-    def parents(self) -> Iterable["Variable"]: ...
+    def parents(self) -> Iterable["Variable"]:
+        """Retrieves the parent variables of the object"""
+        ...
 
-    def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]: ...
+    def chain_rule(self, d_output: Any) -> Iterable[Tuple[Variable, Any]]:
+        """Computes the gradients for the parent variables using the chain rule."""
+        ...
 
 
 def topological_sort(variable: Variable) -> Iterable[Variable]:
@@ -59,22 +81,51 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         Non-constant Variables in topological order starting from the right.
 
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    visited = set()
+    order = []
+
+    def DFS(var: Variable) -> None:
+        """Depth-first search helper function."""
+        if var.unique_id in visited:
+            return
+        visited.add(var.unique_id)
+
+        if not var.is_leaf():
+            for parent in var.parents:
+                if not parent.is_constant():
+                    DFS(parent)
+
+        if not var.is_constant():
+            order.insert(0, var)
+
+    DFS(variable)
+
+    return order
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
     """Runs backpropagation on the computation graph in order to
-    compute derivatives for the leave nodes.
+    compute derivatives for the leaf nodes.
 
     Args:
     ----
-        variable: The right-most variable
-        deriv  : Its derivative that we want to propagate backward to the leaves.
+    variable: The right-most variable
+    deriv  : Its derivative that we want to propagate backward to the leaves.
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
 
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    order = topological_sort(variable)
+
+    derivative = {variable.unique_id: deriv}
+
+    for var in order:
+        if var.is_leaf():
+            var.accumulate_derivative(derivative[var.unique_id])
+
+        else:
+            for v, d_output in var.chain_rule(derivative.get(var.unique_id, 0.0)):
+                derivative[v.unique_id] = derivative.get(v.unique_id, 0.0) + d_output
 
 
 @dataclass
@@ -92,4 +143,5 @@ class Context:
 
     @property
     def saved_tensors(self) -> Tuple[Any, ...]:
+        """Retrieves the values stored for use during backpropagation."""
         return self.saved_values
