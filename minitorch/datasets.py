@@ -5,6 +5,19 @@ from typing import List, Tuple
 
 
 def make_pts(N: int) -> List[Tuple[float, float]]:
+    """Generates a list of N random 2D points.
+
+    Args:
+    ----
+        N (int): The number of points to generate.
+
+    Returns:
+    -------
+        List[Tuple[float, float]]: A list containing N tuples, each representing
+                                   a 2D point with two random float coordinates
+                                   (x_1, x_2) where 0 <= x_1, x_2 < 1.
+
+    """
     X = []
     for i in range(N):
         x_1 = random.random()
@@ -21,6 +34,17 @@ class Graph:
 
 
 def simple(N: int) -> Graph:
+    """Generates N random 2D points and assigns binary labels based on whether the x-coordinate is less than 0.5.
+
+    Args:
+    ----
+        N (int): The number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph object containing the points and their corresponding binary labels (1 if x < 0.5, else 0).
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -30,6 +54,17 @@ def simple(N: int) -> Graph:
 
 
 def diag(N: int) -> Graph:
+    """Generates N random 2D points and assigns binary labels based on whether the sum of x and y coordinates is less than 0.5.
+
+    Args:
+    ----
+        N (int): The number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph object containing the points and their corresponding binary labels (1 if x + y < 0.5, else 0).
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -39,6 +74,17 @@ def diag(N: int) -> Graph:
 
 
 def split(N: int) -> Graph:
+    """Generates N random 2D points and assigns binary labels based on whether the x-coordinate is outside the range [0.2, 0.8].
+
+    Args:
+    ----
+        N (int): The number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph object containing the points and their corresponding binary labels (1 if x < 0.2 or x > 0.8, else 0).
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -48,6 +94,17 @@ def split(N: int) -> Graph:
 
 
 def xor(N: int) -> Graph:
+    """Generates N random 2D points and assigns binary labels based on an XOR-like rule for the coordinates.
+
+    Args:
+    ----
+        N (int): The number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph object containing the points and their corresponding binary labels (1 if the points follow an XOR pattern, else 0).
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -57,6 +114,17 @@ def xor(N: int) -> Graph:
 
 
 def circle(N: int) -> Graph:
+    """Generates N random 2D points and assigns binary labels based on whether the point lies outside a circle centered at (0.5, 0.5) with radius sqrt(0.1).
+
+    Args:
+    ----
+        N (int): The number of points to generate.
+
+    Returns:
+    -------
+        Graph: A graph object containing the points and their corresponding binary labels (1 if outside the circle, else 0).
+
+    """
     X = make_pts(N)
     y = []
     for x_1, x_2 in X:
@@ -67,6 +135,18 @@ def circle(N: int) -> Graph:
 
 
 def spiral(N: int) -> Graph:
+    """Generates N points arranged in two interleaving spirals, with corresponding binary labels for each spiral.
+
+    Args:
+    ----
+        N (int): The total number of points to generate (evenly split between the two spirals).
+
+    Returns:
+    -------
+        Graph: A graph object containing the points arranged in two spirals and their corresponding binary labels (0 for one spiral, 1 for the other).
+
+    """
+
     def x(t: float) -> float:
         return t * math.cos(t) / 20.0
 
