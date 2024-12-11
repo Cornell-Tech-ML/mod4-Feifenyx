@@ -42,7 +42,9 @@ def test_max(t: Tensor) -> None:
     assert_close(out[0, 0, 0], max([t[0, 0, k] for k in range(t.shape[2])]))
 
     # Test backward pass using gradcheck
-    minitorch.grad_check(lambda a: minitorch.nn.max(a, 2), t + minitorch.rand(t.shape) * 1e-3)
+    minitorch.grad_check(
+        lambda a: minitorch.nn.max(a, 2), t + minitorch.rand(t.shape) * 1e-3
+    )
 
 
 @pytest.mark.task4_4

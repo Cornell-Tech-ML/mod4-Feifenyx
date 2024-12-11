@@ -1,14 +1,11 @@
 from typing import Tuple, TypeVar, Any
 
-import numpy as np
 from numba import prange
 from numba import njit as _njit
 
 from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
-    MAX_DIMS,
-    Index,
     Shape,
     Strides,
     Storage,
@@ -22,6 +19,7 @@ Fn = TypeVar("Fn")
 
 
 def njit(fn: Fn, **kwargs: Any) -> Fn:
+    """Just-in-time compile the given function with Numba."""
     return _njit(inline="always", **kwargs)(fn)  # type: ignore
 
 
@@ -93,7 +91,9 @@ def _tensor_conv1d(
     for b in prange(batch):
         for oc in prange(out_channels):
             for ow in prange(out_width):
-                out_position = b * out_strides[0] + oc * out_strides[1] + ow * out_strides[2]
+                out_position = (
+                    b * out_strides[0] + oc * out_strides[1] + ow * out_strides[2]
+                )
                 conv_sum = 0.0
 
                 # Iterate over input channels and kernel width
@@ -103,7 +103,9 @@ def _tensor_conv1d(
                             # For reverse convolution, slide window right to left
                             iw = ow - kw_pos
                             # Flip the kernel for reverse convolution
-                            weight_position = oc * s2[0] + ic * s2[1] + (kw - 1 - kw_pos) * s2[2]
+                            weight_position = (
+                                oc * s2[0] + ic * s2[1] + (kw - 1 - kw_pos) * s2[2]
+                            )
                         else:
                             # For forward convolution, slide window left to right
                             iw = ow + kw_pos
@@ -151,6 +153,18 @@ class Conv1dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Compute gradients for 1D Convolution
+
+        Args:
+        ----
+            ctx (Context): Context containing saved tensors from forward pass
+            grad_output (Tensor): Gradient of the loss with respect to the output
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: Gradients with respect to input and weight
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, w = input.shape
         out_channels, in_channels, kw = weight.shape
@@ -247,9 +261,14 @@ def _tensor_conv2d(
         for oc in prange(out_channels):
             for oh in prange(out_height):
                 for ow in prange(out_width):
-                    out_position = b * out_strides[0] + oc * out_strides[1] + oh * out_strides[2] + ow * out_strides[3]
+                    out_position = (
+                        b * out_strides[0]
+                        + oc * out_strides[1]
+                        + oh * out_strides[2]
+                        + ow * out_strides[3]
+                    )
                     conv_sum = 0.0
-                    
+
                     # Iterate over input channels and kernel dimensions
                     for ic in range(in_channels):
                         for kh_pos in range(kh):
@@ -260,9 +279,10 @@ def _tensor_conv2d(
                                     iw = ow - kw_pos
                                     # Flip the kernel for reverse convolution
                                     weight_position = (
-                                        oc * s20 + ic * s21 + 
-                                        (kh - 1 - kh_pos) * s22 + 
-                                        (kw - 1 - kw_pos) * s23
+                                        oc * s20
+                                        + ic * s21
+                                        + (kh - 1 - kh_pos) * s22
+                                        + (kw - 1 - kw_pos) * s23
                                     )
                                 else:
                                     # For forward convolution, slide window top-left to bottom-right
@@ -270,19 +290,22 @@ def _tensor_conv2d(
                                     iw = ow + kw_pos
                                     # Use normal kernel order for forward convolution
                                     weight_position = (
-                                        oc * s20 + ic * s21 + 
-                                        kh_pos * s22 + kw_pos * s23
+                                        oc * s20
+                                        + ic * s21
+                                        + kh_pos * s22
+                                        + kw_pos * s23
                                     )
-                                
+
                                 # Check if input position is within bounds
                                 if 0 <= ih < height and 0 <= iw < width:
                                     input_position = (
-                                        b * s10 + ic * s11 + 
-                                        ih * s12 + iw * s13
+                                        b * s10 + ic * s11 + ih * s12 + iw * s13
                                     )
                                     # Perform convolution operation and accumulate result
-                                    conv_sum += input[input_position] * weight[weight_position]
-                    
+                                    conv_sum += (
+                                        input[input_position] * weight[weight_position]
+                                    )
+
                     out[out_position] = conv_sum
 
 
@@ -317,6 +340,18 @@ class Conv2dFun(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Compute gradients for 2D Convolution
+
+        Args:
+        ----
+            ctx (Context): Context containing saved tensors from forward pass
+            grad_output (Tensor): Gradient of the loss with respect to the output
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: Gradients with respect to input and weight
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, h, w = input.shape
         out_channels, in_channels, kh, kw = weight.shape

@@ -9,8 +9,6 @@ from numba.cuda import jit as _jit
 from .autodiff import Context
 from .tensor import Tensor
 from .tensor_data import (
-    MAX_DIMS,
-    Index,
     Shape,
     Strides,
     Storage,
@@ -28,6 +26,7 @@ FakeCUDAKernel = Any
 
 Fn = TypeVar("Fn")
 
+
 def device_jit(fn: Fn, **kwargs: Any) -> Fn:
     """Decorator for JIT compilation of device functions."""
     return _jit(device=True, **kwargs)(fn)  # type: ignore
@@ -37,11 +36,13 @@ def jit(fn: Fn, **kwargs: Any) -> FakeCUDAKernel:
     """Decorator for JIT compilation of CUDA kernels."""
     return _jit(**kwargs)(fn)  # type: ignore
 
+
 to_index = device_jit(to_index)
 index_to_position = device_jit(index_to_position)
 broadcast_index = device_jit(broadcast_index)
 
 THREADS_PER_BLOCK = 32
+
 
 def _tensor_conv1d(
     out: Storage,
@@ -84,9 +85,13 @@ def _tensor_conv1d(
             for ic in range(0, in_channels, BLOCK_DIM):
                 # Load input and weight into shared memory
                 if ic + ty < in_channels and ow + tx < width:
-                    shared_input[ty, tx] = input[b * s1[0] + (ic + ty) * s1[1] + (ow + tx) * s1[2]]
+                    shared_input[ty, tx] = input[
+                        b * s1[0] + (ic + ty) * s1[1] + (ow + tx) * s1[2]
+                    ]
                 if ic + tx < in_channels and ty < kw:
-                    shared_weight[tx, ty] = weight[oc * s2[0] + (ic + tx) * s2[1] + ty * s2[2]]
+                    shared_weight[tx, ty] = weight[
+                        oc * s2[0] + (ic + tx) * s2[1] + ty * s2[2]
+                    ]
                 cuda.syncthreads()
 
                 # Compute convolution
@@ -101,7 +106,9 @@ def _tensor_conv1d(
                 cuda.syncthreads()
 
             # Write result to output
-            out_position = b * out_strides[0] + oc * out_strides[1] + ow * out_strides[2]
+            out_position = (
+                b * out_strides[0] + oc * out_strides[1] + ow * out_strides[2]
+            )
             out[out_position] = conv_sum
 
 
@@ -111,11 +118,24 @@ tensor_conv1d = cuda.jit()(_tensor_conv1d)
 class Conv1dFunCuda(Function):
     @staticmethod
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
+        """Compute a 1D Convolution
+
+        Args:
+        ----
+            ctx : Context
+            input : batch x in_channel x h x w
+            weight : out_channel x in_channel x kh x kw
+
+        Returns:
+        -------
+            batch x out_channel x h x w
+
+        """
         ctx.save_for_backward(input, weight)
         batch, in_channels, w = input.shape
         out_channels, in_channels2, kw = weight.shape
         assert in_channels == in_channels2
-        
+
         output_width = w - kw + 1
         output = input.zeros((batch, out_channels, output_width))
 
@@ -123,21 +143,32 @@ class Conv1dFunCuda(Function):
         threadsperblock = THREADS_PER_BLOCK
 
         tensor_conv1d[blockspergrid, threadsperblock](
-            *output.tuple(), output.size,
-            *input.tuple(), *weight.tuple(), False
+            *output.tuple(), output.size, *input.tuple(), *weight.tuple(), False
         )
-        
+
         return output
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Compute gradients for 1D Convolution
+
+        Args:
+        ----
+            ctx (Context): Context containing saved tensors from forward pass
+            grad_output (Tensor): Gradient of the loss with respect to the output
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: Gradients with respect to input and weight
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, w = input.shape
         out_channels, in_channels, kw = weight.shape
-        
+
         grad_input = input.zeros((batch, in_channels, w))
         grad_weight = weight.zeros((out_channels, in_channels, kw))
-        
+
         blockspergrid = (grad_output.shape[0], grad_output.shape[1])
         threadsperblock = THREADS_PER_BLOCK
 
@@ -145,18 +176,24 @@ class Conv1dFunCuda(Function):
         new_input = input.permute(1, 0, 2)
         new_grad_output = grad_output.permute(1, 0, 2)
         tensor_conv1d[blockspergrid, threadsperblock](
-            *grad_weight.tuple(), grad_weight.size,
-            *new_input.tuple(), *new_grad_output.tuple(), False
+            *grad_weight.tuple(),
+            grad_weight.size,
+            *new_input.tuple(),
+            *new_grad_output.tuple(),
+            False,
         )
         grad_weight = grad_weight.permute(1, 0, 2)
-        
+
         # Compute grad_input
         new_weight = weight.permute(1, 0, 2)
         tensor_conv1d[blockspergrid, threadsperblock](
-            *grad_input.tuple(), grad_input.size,
-            *grad_output.tuple(), *new_weight.tuple(), True
+            *grad_input.tuple(),
+            grad_input.size,
+            *grad_output.tuple(),
+            *new_weight.tuple(),
+            True,
         )
-        
+
         return grad_input, grad_weight
 
 
@@ -204,9 +241,16 @@ def _tensor_conv2d(
                 for kh_pos in range(0, kh, BLOCK_DIM):
                     # Load input and weight into shared memory
                     if ic + tx < in_channels and oh + ty < height:
-                        shared_input[tx, ty] = input[b * s1[0] + (ic + tx) * s1[1] + (oh + ty) * s1[2] + ow * s1[3]]
+                        shared_input[tx, ty] = input[
+                            b * s1[0]
+                            + (ic + tx) * s1[1]
+                            + (oh + ty) * s1[2]
+                            + ow * s1[3]
+                        ]
                     if ic + tx < in_channels and kh_pos + ty < kh:
-                        shared_weight[tx, ty] = weight[oc * s2[0] + (ic + tx) * s2[1] + (kh_pos + ty) * s2[2]]
+                        shared_weight[tx, ty] = weight[
+                            oc * s2[0] + (ic + tx) * s2[1] + (kh_pos + ty) * s2[2]
+                        ]
                     cuda.syncthreads()
 
                     # Compute convolution
@@ -224,7 +268,12 @@ def _tensor_conv2d(
                     cuda.syncthreads()
 
             # Write result to output
-            out_position = b * out_strides[0] + oc * out_strides[1] + oh * out_strides[2] + ow * out_strides[3]
+            out_position = (
+                b * out_strides[0]
+                + oc * out_strides[1]
+                + oh * out_strides[2]
+                + ow * out_strides[3]
+            )
             out[out_position] = conv_sum
 
 
@@ -234,11 +283,24 @@ tensor_conv2d = cuda.jit()(_tensor_conv2d)
 class Conv2dFunCuda(Function):
     @staticmethod
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
+        """Compute a 2D Convolution
+
+        Args:
+        ----
+            ctx : Context
+            input : batch x in_channel x h x w
+            weight  : out_channel x in_channel x kh x kw
+
+        Returns:
+        -------
+            (:class:`Tensor`) : batch x out_channel x h x w
+
+        """
         ctx.save_for_backward(input, weight)
         batch, in_channels, h, w = input.shape
         out_channels, in_channels2, kh, kw = weight.shape
         assert in_channels == in_channels2
-        
+
         output_height = h - kh + 1
         output_width = w - kw + 1
         output = input.zeros((batch, out_channels, output_height, output_width))
@@ -246,49 +308,66 @@ class Conv2dFunCuda(Function):
         blockspergrid = (
             (output_height + THREADS_PER_BLOCK - 1) // THREADS_PER_BLOCK,
             (output_width + THREADS_PER_BLOCK - 1) // THREADS_PER_BLOCK,
-            batch
+            batch,
         )
         threadsperblock = (THREADS_PER_BLOCK, THREADS_PER_BLOCK, 1)
 
         tensor_conv2d[blockspergrid, threadsperblock](
-            *output.tuple(), output.size,
-            *input.tuple(), *weight.tuple(), False
+            *output.tuple(), output.size, *input.tuple(), *weight.tuple(), False
         )
-        
+
         return output
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
+        """Compute gradients for 2D Convolution
+
+        Args:
+        ----
+            ctx (Context): Context containing saved tensors from forward pass
+            grad_output (Tensor): Gradient of the loss with respect to the output
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: Gradients with respect to input and weight
+
+        """
         input, weight = ctx.saved_values
         batch, in_channels, h, w = input.shape
         out_channels, in_channels, kh, kw = weight.shape
-        
+
         grad_input = input.zeros((batch, in_channels, h, w))
         grad_weight = weight.zeros((out_channels, in_channels, kh, kw))
-        
+
         blockspergrid = (
             (h + THREADS_PER_BLOCK - 1) // THREADS_PER_BLOCK,
             (w + THREADS_PER_BLOCK - 1) // THREADS_PER_BLOCK,
-            batch
+            batch,
         )
         threadsperblock = (THREADS_PER_BLOCK, THREADS_PER_BLOCK, 1)
-        
+
         # Compute grad_weight
         new_input = input.permute(1, 0, 2, 3)
         new_grad_output = grad_output.permute(1, 0, 2, 3)
         tensor_conv2d[blockspergrid, threadsperblock](
-            *grad_weight.tuple(), grad_weight.size,
-            *new_input.tuple(), *new_grad_output.tuple(), False
+            *grad_weight.tuple(),
+            grad_weight.size,
+            *new_input.tuple(),
+            *new_grad_output.tuple(),
+            False,
         )
         grad_weight = grad_weight.permute(1, 0, 2, 3)
-        
+
         # Compute grad_input
         new_weight = weight.permute(1, 0, 2, 3)
         tensor_conv2d[blockspergrid, threadsperblock](
-            *grad_input.tuple(), grad_input.size,
-            *grad_output.tuple(), *new_weight.tuple(), True
+            *grad_input.tuple(),
+            grad_input.size,
+            *grad_output.tuple(),
+            *new_weight.tuple(),
+            True,
         )
-        
+
         return grad_input, grad_weight
 
 
