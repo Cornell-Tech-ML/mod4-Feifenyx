@@ -1,0 +1,134 @@
+README.md: 100% 35.3k/35.3k [00:00<00:00, 4.54MB/s]
+train-00000-of-00001.parquet: 100% 3.11M/3.11M [00:00<00:00, 36.3MB/s]
+validation-00000-of-00001.parquet: 100% 72.8k/72.8k [00:00<00:00, 161MB/s]
+test-00000-of-00001.parquet: 100% 148k/148k [00:00<00:00, 220MB/s]
+Generating train split: 100% 67349/67349 [00:00<00:00, 619580.37 examples/s]
+Generating validation split: 100% 872/872 [00:00<00:00, 335852.44 examples/s]
+Generating test split: 100% 1821/1821 [00:00<00:00, 476470.84 examples/s]
+Downloading from http://nlp.stanford.edu/data/glove.6B.zip to /root/.embeddings/glove/wikipedia_gigaword.zip
+/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py:1099: InsecureRequestWarning: Unverified HTTPS request is being made to host 'nlp.stanford.edu'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+/usr/local/lib/python3.12/dist-packages/urllib3/connectionpool.py:1099: InsecureRequestWarning: Unverified HTTPS request is being made to host 'downloads.cs.stanford.edu'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings
+  warnings.warn(
+100% 400000/400000 [00:29<00:00, 13520.20it/s]
+missing pre-trained embedding for 55 unknown words
+Epoch 1, loss 31.392724984079997, train accuracy: 52.00%
+Validation accuracy: 52.00%
+Best Valid accuracy: 52.00%
+Epoch 2, loss 31.163316186062506, train accuracy: 52.00%
+Validation accuracy: 56.00%
+Best Valid accuracy: 56.00%
+Epoch 3, loss 30.89692964545439, train accuracy: 56.00%
+Validation accuracy: 52.00%
+Best Valid accuracy: 56.00%
+Epoch 4, loss 30.85513920962143, train accuracy: 56.22%
+Validation accuracy: 50.00%
+Best Valid accuracy: 56.00%
+Epoch 5, loss 30.72990455782098, train accuracy: 56.22%
+Validation accuracy: 55.00%
+Best Valid accuracy: 56.00%
+Epoch 6, loss 30.326731203730844, train accuracy: 58.67%
+Validation accuracy: 65.00%
+Best Valid accuracy: 65.00%
+Epoch 7, loss 30.15304718101444, train accuracy: 58.89%
+Validation accuracy: 57.00%
+Best Valid accuracy: 65.00%
+Epoch 8, loss 29.92111872056743, train accuracy: 62.67%
+Validation accuracy: 70.00%
+Best Valid accuracy: 70.00%
+Epoch 9, loss 29.509702269296, train accuracy: 64.22%
+Validation accuracy: 68.00%
+Best Valid accuracy: 70.00%
+Epoch 10, loss 29.110565189253474, train accuracy: 65.56%
+Validation accuracy: 60.00%
+Best Valid accuracy: 70.00%
+Epoch 11, loss 28.66598174237214, train accuracy: 65.33%
+Validation accuracy: 65.00%
+Best Valid accuracy: 70.00%
+Epoch 12, loss 28.416530976750625, train accuracy: 68.00%
+Validation accuracy: 70.00%
+Best Valid accuracy: 70.00%
+Epoch 13, loss 27.89303622618274, train accuracy: 71.11%
+Validation accuracy: 68.00%
+Best Valid accuracy: 70.00%
+Epoch 14, loss 27.1453139660355, train accuracy: 73.78%
+Validation accuracy: 66.00%
+Best Valid accuracy: 70.00%
+Epoch 15, loss 26.792728165065473, train accuracy: 73.33%
+Validation accuracy: 67.00%
+Best Valid accuracy: 70.00%
+Epoch 16, loss 25.993127564276723, train accuracy: 74.44%
+Validation accuracy: 71.00%
+Best Valid accuracy: 71.00%
+Epoch 17, loss 25.61722572601431, train accuracy: 74.00%
+Validation accuracy: 67.00%
+Best Valid accuracy: 71.00%
+Epoch 18, loss 24.99382162114244, train accuracy: 78.00%
+Validation accuracy: 66.00%
+Best Valid accuracy: 71.00%
+Epoch 19, loss 24.116181096623144, train accuracy: 77.11%
+Validation accuracy: 70.00%
+Best Valid accuracy: 71.00%
+Epoch 20, loss 23.387385855109812, train accuracy: 79.33%
+Validation accuracy: 71.00%
+Best Valid accuracy: 71.00%
+Epoch 21, loss 23.369345058288506, train accuracy: 74.44%
+Validation accuracy: 75.00%
+Best Valid accuracy: 75.00%
+Epoch 22, loss 22.316100736066314, train accuracy: 78.00%
+Validation accuracy: 75.00%
+Best Valid accuracy: 75.00%
+Epoch 23, loss 21.46294801845833, train accuracy: 78.89%
+Validation accuracy: 71.00%
+Best Valid accuracy: 75.00%
+Epoch 24, loss 21.67152520799187, train accuracy: 76.44%
+Validation accuracy: 67.00%
+Best Valid accuracy: 75.00%
+Epoch 25, loss 20.306642549553093, train accuracy: 79.33%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 26, loss 20.055801386741116, train accuracy: 80.00%
+Validation accuracy: 70.00%
+Best Valid accuracy: 75.00%
+Epoch 27, loss 19.311507430522767, train accuracy: 80.67%
+Validation accuracy: 73.00%
+Best Valid accuracy: 75.00%
+Epoch 28, loss 18.22017560475888, train accuracy: 83.33%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 29, loss 18.707944140262015, train accuracy: 81.11%
+Validation accuracy: 71.00%
+Best Valid accuracy: 75.00%
+Epoch 30, loss 17.787686244430184, train accuracy: 84.44%
+Validation accuracy: 70.00%
+Best Valid accuracy: 75.00%
+Epoch 31, loss 17.586297597280065, train accuracy: 82.44%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 32, loss 16.57013215342209, train accuracy: 83.78%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 33, loss 16.336760397270297, train accuracy: 84.89%
+Validation accuracy: 71.00%
+Best Valid accuracy: 75.00%
+Epoch 34, loss 15.627177555718058, train accuracy: 85.11%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 35, loss 15.93600690605936, train accuracy: 84.00%
+Validation accuracy: 70.00%
+Best Valid accuracy: 75.00%
+Epoch 36, loss 16.005968574372677, train accuracy: 84.22%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 37, loss 15.651116883447731, train accuracy: 82.44%
+Validation accuracy: 70.00%
+Best Valid accuracy: 75.00%
+Epoch 38, loss 14.647304769384364, train accuracy: 86.44%
+Validation accuracy: 72.00%
+Best Valid accuracy: 75.00%
+Epoch 39, loss 13.925915737096819, train accuracy: 86.44%
+Validation accuracy: 70.00%
+Best Valid accuracy: 75.00%
+Epoch 40, loss 13.037983441830415, train accuracy: 88.44%
+Validation accuracy: 71.00%
+Best Valid accuracy: 75.00%
