@@ -108,7 +108,7 @@ def _tensor_conv1d(
 tensor_conv1d = cuda.jit()(_tensor_conv1d)
 
 
-class Conv1dFun(Function):
+class Conv1dFunCuda(Function):
     @staticmethod
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
         ctx.save_for_backward(input, weight)
@@ -160,7 +160,7 @@ class Conv1dFun(Function):
         return grad_input, grad_weight
 
 
-conv1d_cuda = Conv1dFun.apply
+conv1d_cuda = Conv1dFunCuda.apply
 
 
 def _tensor_conv2d(
@@ -231,7 +231,7 @@ def _tensor_conv2d(
 tensor_conv2d = cuda.jit()(_tensor_conv2d)
 
 
-class Conv2dFun(Function):
+class Conv2dFunCuda(Function):
     @staticmethod
     def forward(ctx: Context, input: Tensor, weight: Tensor) -> Tensor:
         ctx.save_for_backward(input, weight)
@@ -292,4 +292,4 @@ class Conv2dFun(Function):
         return grad_input, grad_weight
 
 
-conv2d_cuda = Conv2dFun.apply
+conv2d_cuda = Conv2dFunCuda.apply

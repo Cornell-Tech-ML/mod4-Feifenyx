@@ -4,6 +4,7 @@ from .optim import *  # noqa: F401,F403
 from .tensor import *  # noqa: F401,F403
 from .testing import *  # noqa: F401,F403
 from .nn import *  # noqa: F401,F403
+from .cuda_conv import *  # noqa: F401,F403
 from .fast_conv import *  # noqa: F401,F403
 from .tensor_data import *  # noqa: F401,F403
 from .tensor_functions import *  # noqa: F401,F403
